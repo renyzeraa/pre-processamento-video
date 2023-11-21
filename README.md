@@ -4,6 +4,15 @@
 
 - Recriei um site, onde aplico um novo método de Pré-processamento de vídeos, que tira das mãos do servidor e passei para o lado do cliente processar, ele processa sobre demanda, o que diminui em muito a utilização de maquina, reduzindo custos para a empresa fornecedora do conteúdo.
 
+## Processo
+
+- Baixa um arquivo MP4 sob demanda
+- Demultiplexa com o MP4box
+- Encoda cada fragmento com o VideoEncoder
+- Multiplexa cada Fragmento
+- Faz Upload dos Fragmentos em WEBM
+- Decoda cada Fragmento com VideoEncoder
+
 ## Pre-requisitos
 
 - Este projeto foi criado usando Node.js v18.17.0
@@ -26,3 +35,6 @@
     2. no package.json apague todo o comando do `browser-sync` e substitua por `npx http-server .`
     3. agora o projeto vai estar executando na :8080 então vá no navegador e tente acessar o http://localhost:8080/
        A unica coisa, é que o projeto não vai reiniciar quando voce alterar algum código, vai precisar dar um F5 na página toda vez que alterar algo
+
+[Discord](https://discord.com/invite/T4NaVqgRXN)
+[Repositório Projeto Inicial](https://github.com/ErickWendel/semana-javascript-expert08)
