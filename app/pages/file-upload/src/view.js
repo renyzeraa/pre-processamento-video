@@ -1,15 +1,20 @@
 export default class View {
-  #fileUpload        = document.getElementById('fileUpload')
-  #btnUploadVideo    = document.getElementById('btnUploadVideos')
-  #fileSize          = document.getElementById('fileSize')
-  #fileInfo          = document.getElementById('fileInfo')
-  #txtfileName       = document.getElementById('fileName')
-  #fileUploadWrapper = document.getElementById('fileUploadWrapper')
-  #elapsed           = document.getElementById('elapsed')
-  #canvas            = document.getElementById('review-144p')
+  #fileUpload        = document.getElementById('fileUpload');
+  #btnUploadVideo    = document.getElementById('btnUploadVideos');
+  #fileSize          = document.getElementById('fileSize');
+  #fileInfo          = document.getElementById('fileInfo');
+  #txtfileName       = document.getElementById('fileName');
+  #fileUploadWrapper = document.getElementById('fileUploadWrapper');
+  #elapsed           = document.getElementById('elapsed');
+  /** @type {HTMLCanvasElement}*/
+  #canvas            = document.getElementById('preview-144p');
 
   constructor () {
-    this.configureBtnUploadClick()
+    this.configureBtnUploadClick();
+  }
+
+  getCanvas() {
+    return this.#canvas.transferControlToOffscreen();
   }
 
   parseBytesIntoMBAndGB(bytes) {
