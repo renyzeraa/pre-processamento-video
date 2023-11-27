@@ -4,18 +4,18 @@ export default class Mp4Demuxer {
   #onConfig;
   #onChunk;
   #file
- /**
+  /**
    * @param {ReadableStream} stream 
    * @param {object} options
    * @param {(config: object) => void} options.onConfig
    * 
    * @returns {Promise<void>}
    */
-  async run(stream, { onConfig, onChunk}){
+  async run(stream, { onConfig, onChunk }){
     this.#onConfig = onConfig;
     this.#onChunk  = onChunk;
 
-    this.#file     = createFile();
+    this.#file         = createFile();
     this.#file.onReady = this.#onReady.bind(this);
 
     this.#file.onSamples = this.#onSamples.bind(this);
@@ -41,16 +41,17 @@ export default class Mp4Demuxer {
 }
 
   #onReady(info) {
-    const [track] = info.videoTracks;
+    const [track] = info.videoTracks
     this.#onConfig({
-      codec: track.codec,
-      codedHeight: track.video.height,
-      codedWidth: track.video.width,
-      description: this.#description(track)
-    });
+        codec: track.codec,
+        codedHeight: track.video.height,
+        codedWidth: track.video.width,
+        description: this.#description(track),
+        durationSecs: info.duration / info.timescale,
+    })
 
-    this.#file.setExtractionOptions(track.id);
-    this.#file.start();
+    this.#file.setExtractionOptions(track.id)
+    this.#file.start()
   }
 
   #onSamples(trackId, ref, samples) {
