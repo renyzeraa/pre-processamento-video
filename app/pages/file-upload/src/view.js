@@ -1,20 +1,20 @@
 export default class View {
-  #fileUpload        = document.getElementById('fileUpload');
-  #btnUploadVideo    = document.getElementById('btnUploadVideos');
-  #fileSize          = document.getElementById('fileSize');
-  #fileInfo          = document.getElementById('fileInfo');
-  #txtfileName       = document.getElementById('fileName');
-  #fileUploadWrapper = document.getElementById('fileUploadWrapper');
-  #elapsed           = document.getElementById('elapsed');
+  #fileUpload = document.getElementById('fileUpload')
+  #btnUploadVideo = document.getElementById('btnUploadVideos')
+  #fileSize = document.getElementById('fileSize')
+  #fileInfo = document.getElementById('fileInfo')
+  #txtfileName = document.getElementById('fileName')
+  #fileUploadWrapper = document.getElementById('fileUploadWrapper')
+  #elapsed = document.getElementById('elapsed')
   /** @type {HTMLCanvasElement}*/
-  #canvas            = document.getElementById('preview-144p');
+  #canvas = document.getElementById('preview-144p')
 
-  constructor () {
-    this.configureBtnUploadClick();
+  constructor() {
+    this.configureBtnUploadClick()
   }
 
   getCanvas() {
-    return this.#canvas.transferControlToOffscreen();
+    return this.#canvas.transferControlToOffscreen()
   }
 
   parseBytesIntoMBAndGB(bytes) {
@@ -31,27 +31,37 @@ export default class View {
     this.#fileUpload.addEventListener('change', this.onChange(fn))
   }
 
- configureBtnUploadClick() {
+  configureBtnUploadClick() {
     this.#btnUploadVideo.addEventListener('click', () => {
       // trigger file input
       this.#fileUpload.click()
     })
- }
+  }
 
   onChange(fn) {
-    return (e) => {
+    return e => {
       const file = e.target.files[0]
       const { name, size } = file
       fn(file)
       this.#txtfileName.innerText = name
       this.#fileSize.innerText = this.parseBytesIntoMBAndGB(size)
-    
+
       this.#fileInfo.classList.remove('hide')
       this.#fileUploadWrapper.classList.add('hide')
     }
   }
 
-  updateElapsedTime(text){
-    this.#elapsed.innerText = text;
+  updateElapsedTime(text) {
+    this.#elapsed.innerText = text
+  }
+
+  downloadBlobAsFile(buffers, fileName) {
+    const blob = new Blob(buffers, { type: 'video/webm' })
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = fileName
+    a.click()
+    URL.revokeObjectURL(blobUrl)
   }
 }

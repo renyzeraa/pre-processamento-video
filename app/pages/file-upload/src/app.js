@@ -1,38 +1,41 @@
-import Clock from './deps/clock.js';
-import View from './view.js';
-const clock = new Clock();
-const view = new View();
+import Clock from './deps/clock.js'
+import View from './view.js'
+const clock = new Clock()
+const view = new View()
 
 const worker = new Worker('./src/worker/worker.js', {
   type: 'module'
-});
+})
 
-worker.onmessage = ({data}) => {
-  if (data.status !== 'done') return;
-  clock.stop();
-  view.updateElapsedTime(`Process took ${took.replace('ago', '')}`);
+worker.onmessage = ({ data }) => {
+  if (data.status !== 'done') return
+  clock.stop()
+  view.updateElapsedTime(`Process took ${took.replace('ago', '')}`)
+  if (!data.buffers) return
+  view.downloadBlobAsFile(data.buffers, data.fileName)
 }
 
-let took = '';
+let took = ''
 
 view.configureOnFileChange(file => {
-  const canvas = view.getCanvas();
-  worker.postMessage({
-    file, 
-    canvas
-  }, [
-    canvas
-  ]);
+  const canvas = view.getCanvas()
+  worker.postMessage(
+    {
+      file,
+      canvas
+    },
+    [canvas]
+  )
 
   clock.start(time => {
     took = time
-    view.updateElapsedTime(`Process started ${time}`);
+    view.updateElapsedTime(`Process started ${time}`)
   })
-});
+})
 
 async function fakeFetch() {
   const filePath = '/videos/frag_bunny.mp4'
-  const response = await fetch(filePath);
+  const response = await fetch(filePath)
 
   // traz o tamanho do arquivo
   // const response = await fetch(filePath, {
@@ -44,17 +47,13 @@ async function fakeFetch() {
     type: 'video/mp4',
     lastModified: Date.now()
   })
-  const event = new Event('change');
-  Reflect.defineProperty(
-    event,
-    'target',
-    {
-      value: {
-        files: [file]
-      } 
+  const event = new Event('change')
+  Reflect.defineProperty(event, 'target', {
+    value: {
+      files: [file]
     }
-  )
-  document.getElementById('fileUpload').dispatchEvent(event);
+  })
+  document.getElementById('fileUpload').dispatchEvent(event)
 }
 // Utilizado somente em ambiente de desenvolvimento, evitar de ficar clicando para selecionar o arquivo
 fakeFetch()

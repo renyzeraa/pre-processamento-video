@@ -1,12 +1,16 @@
 export default class VideoProcessor {
   #mp4Demuxer
+  #webMWriter
+  #buffers = []
   /**
    *
    * @param {object} options
    * @param {import('./mp4Demuxer.js').default} options.mp4Demuxer
+   * @param {import('./../deps/webm-writer2.js').default} options.webMWriter
    */
-  constructor({ mp4Demuxer }) {
+  constructor({ mp4Demuxer, webMWriter }) {
     this.#mp4Demuxer = mp4Demuxer
+    this.#webMWriter = webMWriter
   }
   /** @returns {ReadableStream} */
   mp4Decoder(stream) {
@@ -132,17 +136,50 @@ export default class VideoProcessor {
     })
   }
 
-  transformIntoWebM() {}
+  transformIntoWebM() {
+    const writable = new WritableStream({
+      write: chunk => {
+        this.#webMWriter.addFrame(chunk)
+      },
+      close() {
+        debugger
+      }
+    })
+    return {
+      readable: this.#webMWriter.getStream(),
+      writable
+    }
+  }
 
-  async start({ file, encoderConfig, renderFrame }) {
+  async start({ file, encoderConfig, renderFrame, sendMessage }) {
     const stream = file.stream()
     const fileName = file.name.split('/').pop().replace('.mp4', '')
     await this.mp4Decoder(stream)
       .pipeThrough(this.enconde144p(encoderConfig))
       .pipeThrough(this.renderDecodedFramesAndGetEncodedChunks(renderFrame))
+      .pipeThrough(this.transformIntoWebM())
+      .pipeThrough(
+        new TransformStream({
+          transform: ({ data, position }, controller) => {
+            this.#buffers.push(data)
+            controller.enqueue(data)
+          },
+          flush: () => {
+            // sendMessage({
+            //   status: 'done',
+            //   buffers: this.#buffers,
+            //   fileName: fileName.concat('-144p.webm')
+            // })
+            sendMessage({
+              status: 'done'
+            })
+          }
+        })
+      )
       .pipeTo(
         new WritableStream({
           write(frame) {
+            // debugger
             // renderFrame(frame)
           }
         })
