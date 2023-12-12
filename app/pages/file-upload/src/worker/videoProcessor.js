@@ -2,15 +2,19 @@ export default class VideoProcessor {
   #mp4Demuxer
   #webMWriter
   #buffers = []
+  #service
+
   /**
    *
    * @param {object} options
    * @param {import('./mp4Demuxer.js').default} options.mp4Demuxer
    * @param {import('./../deps/webm-writer2.js').default} options.webMWriter
+   * @param {import('./service.js').default} options.service
    */
-  constructor({ mp4Demuxer, webMWriter }) {
+  constructor({ mp4Demuxer, webMWriter, service }) {
     this.#mp4Demuxer = mp4Demuxer
     this.#webMWriter = webMWriter
+    this.#service = service
   }
   /** @returns {ReadableStream} */
   mp4Decoder(stream) {
@@ -29,15 +33,6 @@ export default class VideoProcessor {
 
         return this.#mp4Demuxer.run(stream, {
           async onConfig(config) {
-            const { supported } = await VideoDecoder.isConfigSupported(config)
-            if (!supported) {
-              console.error(
-                'mp4Demuxer VideoDecoder config is not supported',
-                config
-              )
-              controller.close()
-              return
-            }
             decoder.configure(config)
           },
           /** @param {EncodedVideoChunk} chunk */
@@ -45,11 +40,6 @@ export default class VideoProcessor {
             decoder.decode(chunk)
           }
         })
-        // .then(() => {
-        //   setTimeout(() => {
-        //     controller.close()
-        //   }, 3000)
-        // })
       }
     })
   }
@@ -154,9 +144,13 @@ export default class VideoProcessor {
   upload(fileName, resolution, type) {
     const chunks = []
     let byteCount = 0
-
+    let segmentCount = 0
     const triggerUpload = async chunks => {
       const blob = new Blob(chunks, { type: 'video/webm' })
+      await this.#service.uploadFile({
+        fileName: `${fileName}-${resolution}.${++segmentCount}.${type}`,
+        fileBuffer: blob
+      })
       chunks.length = 0
       byteCount = 0
     }
@@ -196,11 +190,11 @@ export default class VideoProcessor {
       //       controller.enqueue(data)
       //     },
       //     flush: () => {
-      //       // sendMessage({
-      //       //   status: 'done',
-      //       //   buffers: this.#buffers,
-      //       //   fileName: fileName.concat('-144p.webm')
-      //       // })
+      //       sendMessage({
+      //         status: 'done',
+      //         buffers: this.#buffers,
+      //         fileName: fileName.concat('-144p.webm')
+      //       })
       //       sendMessage({
       //         status: 'done'
       //       })
@@ -208,12 +202,8 @@ export default class VideoProcessor {
       //   })
       // )
       .pipeTo(this.upload(fileName, '144p', 'webm'))
-    // .pipeTo(
-    //   new WritableStream({
-    //     write: (frame) => {
-    //       renderFrame(frame)
-    //     }
-    //   })
-    // )
+    sendMessage({
+      status: 'done'
+    })
   }
 }

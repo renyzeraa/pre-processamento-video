@@ -56,4 +56,4 @@ async function fakeFetch() {
   document.getElementById('fileUpload').dispatchEvent(event)
 }
 // Utilizado somente em ambiente de desenvolvimento, evitar de ficar clicando para selecionar o arquivo
-fakeFetch()
+// fakeFetch()
